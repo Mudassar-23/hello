@@ -1,0 +1,38 @@
+.env
+frontend/.env
+backend/.env
+node_modules/
+frontend/node_modules/
+frontend/dist/
+backend/venv/
+backend/**/__pycache__/
+backend/*.db
+backend/portfolio.db
+backend/uploads/
+*.pyc
+.DS_Store
+.vscode/
+.idea/
+
+
+
+# Environment
+.env
+*.env.local
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+venv/
+.venv/
+env/
+*.egg-info/
+dist/
+build/
+
+# Database
+*.db
+*.sqlite
+*.sqlite3
