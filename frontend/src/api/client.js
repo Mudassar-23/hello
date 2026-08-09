@@ -5,12 +5,15 @@ import {
   saveLocalData,
   saveLocalMessage,
 } from "./fallback";
+import { saveVideoBlob } from "./videoStore";
 
-const API_URL = (import.meta.env.VITE_API_URL || "").replace(/\/$/, "");
+const API_URL = (
+  import.meta.env.VITE_API_URL || "http://127.0.0.1:8000"
+).replace(/\/$/, "");
 const ACCESS_KEY = "portfolio_access_token";
 
 export function getApiUrl() {
-  return API_URL || window.location.origin;
+  return API_URL;
 }
 
 export function mediaUrl(path) {
@@ -18,33 +21,41 @@ export function mediaUrl(path) {
   if (
     path.startsWith("http://") ||
     path.startsWith("https://") ||
-    path.startsWith("data:")
+    path.startsWith("data:") ||
+    path.startsWith("blob:")
   ) {
     return path;
   }
-  if (path.startsWith("/uploads/")) {
-    return path;
+  if (path.startsWith("/videos/") || path.startsWith("videos/")) {
+    return path.startsWith("/") ? path : `/${path}`;
   }
-  if (path.startsWith("uploads/")) {
-    return `/${path}`;
+  if (path.startsWith("/certs/") || path.startsWith("certs/")) {
+    return path.startsWith("/") ? path : `/${path}`;
   }
-  // Check if filename like "b49a087ba26b466fb0763b7b758da553.png"
+  if (path.startsWith("/uploads/") || path.startsWith("uploads/")) {
+    return path.startsWith("/") ? path : `/${path}`;
+  }
   if (/\.(png|jpg|jpeg|webp|gif|svg)$/i.test(path)) {
     return `/uploads/${path}`;
   }
-  if (API_URL) {
-    return `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
+  if (/\.(mp4|webm|ogg|mov|mkv)$/i.test(path)) {
+    return `/videos/${path}`;
   }
-  return path.startsWith("/") ? path : `/${path}`;
+  return `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
 export function getAccessToken() {
-  return sessionStorage.getItem(ACCESS_KEY);
+  return sessionStorage.getItem(ACCESS_KEY) || localStorage.getItem(ACCESS_KEY);
 }
 
 export function setAccessToken(token) {
-  if (token) sessionStorage.setItem(ACCESS_KEY, token);
-  else sessionStorage.removeItem(ACCESS_KEY);
+  if (token) {
+    sessionStorage.setItem(ACCESS_KEY, token);
+    localStorage.setItem(ACCESS_KEY, token);
+  } else {
+    sessionStorage.removeItem(ACCESS_KEY);
+    localStorage.removeItem(ACCESS_KEY);
+  }
 }
 
 async function parseError(res) {
@@ -250,8 +261,40 @@ async function handleLocalApi(path, options = {}) {
   if (path === "/api/media") {
     if (method === "GET") return data.media;
   }
+
+  if (path.includes("/video") && path.startsWith("/api/media/")) {
+    const id = parseInt(path.split("/")[3], 10);
+    const mediaIdx = data.media.findIndex((m) => m.id === id);
+    if (mediaIdx !== -1) {
+      let videoUrl = "";
+      if (options.body instanceof FormData) {
+        const file = options.body.get("file");
+        if (file && file instanceof File) {
+          videoUrl = await saveVideoBlob(id, file);
+        }
+      } else if (bodyData && bodyData.video_url) {
+        videoUrl = bodyData.video_url;
+      }
+
+      if (videoUrl) {
+        data.media[mediaIdx].video_url = videoUrl;
+        saveLocalData(data);
+        return data.media[mediaIdx];
+      }
+    }
+  }
+
   if (path.startsWith("/api/media/")) {
     const id = parseInt(path.split("/").pop(), 10);
+    const mediaIdx = data.media.findIndex((m) => m.id === id);
+    if (method === "PUT" && bodyData && mediaIdx !== -1) {
+      data.media[mediaIdx] = {
+        ...data.media[mediaIdx],
+        ...bodyData,
+      };
+      saveLocalData(data);
+      return data.media[mediaIdx];
+    }
     if (method === "DELETE") {
       data.media = data.media.filter((m) => m.id !== id);
       saveLocalData(data);
@@ -283,6 +326,119 @@ async function handleLocalApi(path, options = {}) {
     if (path.includes("projects")) return data.projects;
     if (path.includes("experience")) return data.experience;
     if (path.includes("media")) return data.media;
+    if (path.includes("certifications")) return data.certifications || [];
+    if (path.includes("honors")) return data.honors || [];
+  }
+
+  // --- Certifications endpoints ---
+  if (path === "/api/certifications") {
+    if (method === "GET") return data.certifications || [];
+    if (method === "POST" && bodyData) {
+      const newCert = {
+        id: Date.now(),
+        name: bodyData.name || "",
+        issuer: bodyData.issuer || "",
+        issue_date: bodyData.issue_date || "",
+        pdf_url: "",
+        sort_order: bodyData.sort_order ?? (data.certifications || []).length,
+      };
+      if (!data.certifications) data.certifications = [];
+      data.certifications.push(newCert);
+      saveLocalData(data);
+      return newCert;
+    }
+  }
+
+  if (path.includes("/pdf") && path.startsWith("/api/certifications/")) {
+    const id = parseInt(path.split("/")[3], 10);
+    if (!data.certifications) data.certifications = [];
+    const certIdx = data.certifications.findIndex((c) => c.id === id);
+    if (certIdx !== -1 && options.body instanceof FormData) {
+      const file = options.body.get("file");
+      if (file && file instanceof File) {
+        const dataUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(file);
+        });
+        data.certifications[certIdx].pdf_url = dataUrl;
+        saveLocalData(data);
+        return data.certifications[certIdx];
+      }
+    }
+  }
+
+  if (path.startsWith("/api/certifications/")) {
+    const id = parseInt(path.split("/").pop(), 10);
+    if (!data.certifications) data.certifications = [];
+    const certIdx = data.certifications.findIndex((c) => c.id === id);
+    if (method === "PUT" && bodyData && certIdx !== -1) {
+      data.certifications[certIdx] = { ...data.certifications[certIdx], ...bodyData };
+      saveLocalData(data);
+      return data.certifications[certIdx];
+    }
+    if (method === "DELETE" && certIdx !== -1) {
+      data.certifications.splice(certIdx, 1);
+      saveLocalData(data);
+      return { success: true };
+    }
+  }
+
+  // --- Honors & Awards endpoints ---
+  if (path === "/api/honors") {
+    if (method === "GET") return data.honors || [];
+    if (method === "POST" && bodyData) {
+      const newHonor = {
+        id: Date.now(),
+        title: bodyData.title || "",
+        issuer: bodyData.issuer || "",
+        issue_date: bodyData.issue_date || "",
+        description: bodyData.description || "",
+        url: bodyData.url || "",
+        associated_with: bodyData.associated_with || "",
+        image_url: "",
+        sort_order: bodyData.sort_order ?? (data.honors || []).length,
+      };
+      if (!data.honors) data.honors = [];
+      data.honors.push(newHonor);
+      saveLocalData(data);
+      return newHonor;
+    }
+  }
+
+  if (path.includes("/image") && path.startsWith("/api/honors/")) {
+    const id = parseInt(path.split("/")[3], 10);
+    if (!data.honors) data.honors = [];
+    const honorIdx = data.honors.findIndex((h) => h.id === id);
+    if (honorIdx !== -1 && options.body instanceof FormData) {
+      const file = options.body.get("file");
+      if (file && file instanceof File) {
+        const dataUrl = await new Promise((resolve) => {
+          const reader = new FileReader();
+          reader.onload = (e) => resolve(e.target.result);
+          reader.readAsDataURL(file);
+        });
+        data.honors[honorIdx].image_url = dataUrl;
+        saveLocalData(data);
+        return data.honors[honorIdx];
+      }
+    }
+  }
+
+  if (path.startsWith("/api/honors/")) {
+    const id = parseInt(path.split("/").pop(), 10);
+    if (!data.honors) data.honors = [];
+    const honorIdx = data.honors.findIndex((h) => h.id === id);
+    if (method === "PUT" && bodyData && honorIdx !== -1) {
+      data.honors[honorIdx] = { ...data.honors[honorIdx], ...bodyData };
+      saveLocalData(data);
+      return data.honors[honorIdx];
+    }
+    if (method === "DELETE" && honorIdx !== -1) {
+      data.honors.splice(honorIdx, 1);
+      saveLocalData(data);
+      return { success: true };
+    }
   }
 
   return { success: true };
@@ -332,8 +488,14 @@ export async function apiFetch(path, options = {}, _retried = false) {
         const type = res.headers.get("content-type") || "";
         if (type.includes("application/json")) return res.json();
         return res.text();
+      } else {
+        const errText = await res.text();
+        throw new Error(`API Error ${res.status}: ${errText}`);
       }
-    } catch {
+    } catch (err) {
+      if (err.message && err.message.startsWith("API Error")) {
+        throw err;
+      }
       // Backend fetch failed (e.g. offline / CORS / no backend deployed) -> fall through to local fallback below
     }
   }

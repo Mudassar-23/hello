@@ -1,6 +1,6 @@
 from pathlib import Path
 
-from fastapi import APIRouter, Depends, HTTPException, Response, status
+from fastapi import APIRouter, Depends, File, HTTPException, Response, UploadFile, status
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
@@ -8,7 +8,7 @@ from app.database import get_db
 from app.deps import get_current_admin
 from app.models import AdminUser, Project
 from app.schemas import MediaOut
-from app.uploads_util import project_image_url
+from app.uploads_util import project_image_url, save_project_video
 
 router = APIRouter(prefix="/api/media", tags=["media"])
 
@@ -27,10 +27,39 @@ def list_media(db: Session = Depends(get_db)) -> list[MediaOut]:
             name=p.name,
             caption=p.caption or p.name,
             image_url=project_image_url(p.image_path),
+            video_url=p.video_path or "",
             github_url=p.github_url,
+            sort_order=p.sort_order,
         )
         for p in rows
     ]
+
+
+@router.post("/{media_id}/video", response_model=MediaOut)
+async def upload_media_video(
+    media_id: int,
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db),
+    _: AdminUser = Depends(get_current_admin),
+) -> MediaOut:
+    project = db.query(Project).filter(Project.id == media_id).first()
+    if not project:
+        raise HTTPException(status_code=404, detail="Media not found")
+
+    video_url = await save_project_video(file)
+    project.video_path = video_url
+    db.commit()
+    db.refresh(project)
+
+    return MediaOut(
+        id=project.id,
+        name=project.name,
+        caption=project.caption or project.name,
+        image_url=project_image_url(project.image_path),
+        video_url=project.video_path,
+        github_url=project.github_url,
+        sort_order=project.sort_order,
+    )
 
 
 @router.delete("/{media_id}", status_code=status.HTTP_204_NO_CONTENT)

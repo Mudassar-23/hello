@@ -9,9 +9,9 @@ from starlette.middleware.base import BaseHTTPMiddleware
 
 from app.config import get_settings
 from app.database import Base, SessionLocal, engine
-from app.routers import auth, contact_messages, content, experience, media, projects, skills
+from app.routers import auth, certifications, contact_messages, content, experience, honors, media, projects, skills
 from app.seed import seed_database
-from app.uploads_util import ensure_upload_dir
+from app.uploads_util import ensure_backend_certs_dir, ensure_backend_videos_dir, ensure_upload_dir
 
 settings = get_settings()
 
@@ -24,6 +24,13 @@ app = FastAPI(
     redoc_url=redoc_url,
     openapi_url="/openapi.json" if settings.environment != "production" else None,
 )
+
+upload_path = ensure_upload_dir()
+video_path = ensure_backend_videos_dir()
+certs_path = ensure_backend_certs_dir()
+app.mount("/uploads", StaticFiles(directory=str(upload_path)), name="uploads")
+app.mount("/videos", StaticFiles(directory=str(video_path)), name="videos")
+app.mount("/certs", StaticFiles(directory=str(certs_path)), name="certs")
 
 app.state.limiter = auth.limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
@@ -53,22 +60,37 @@ app.add_middleware(
     allow_headers=["Authorization", "Content-Type"],
 )
 
-upload_path = ensure_upload_dir()
-app.mount("/uploads", StaticFiles(directory=str(upload_path)), name="uploads")
-
 app.include_router(auth.router)
 app.include_router(content.router)
 app.include_router(skills.router)
 app.include_router(experience.router)
 app.include_router(projects.router)
 app.include_router(media.router)
+app.include_router(certifications.router)
+app.include_router(honors.router)
 app.include_router(contact_messages.router)
 
+
+from sqlalchemy import text
 
 @app.on_event("startup")
 def on_startup() -> None:
     Base.metadata.create_all(bind=engine)
+    # Safe migrations for new columns / tables (no-op if already exist)
+    _safe_migrations = [
+        "ALTER TABLE projects ADD COLUMN video_path TEXT DEFAULT ''",
+    ]
+    with engine.connect() as conn:
+        for sql in _safe_migrations:
+            try:
+                conn.execute(text(sql))
+                conn.commit()
+            except Exception:
+                pass
+
     ensure_upload_dir()
+    ensure_backend_videos_dir()
+    ensure_backend_certs_dir()
     db = SessionLocal()
     try:
         seed_database(db)

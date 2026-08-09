@@ -1,76 +1,98 @@
+import { INITIAL_PORTFOLIO_DATA } from "../data/portfolioData";
+
+const STORAGE_KEY = "portfolio_local_data_v3";
+const MESSAGES_KEY = "portfolio_contact_messages";
+
+export function getLocalData() {
+  try {
+    const saved = localStorage.getItem(STORAGE_KEY);
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      return {
+        home: parsed.home || INITIAL_PORTFOLIO_DATA.home,
+        about: parsed.about || INITIAL_PORTFOLIO_DATA.about,
+        contact: parsed.contact || INITIAL_PORTFOLIO_DATA.contact,
+        skills: parsed.skills || INITIAL_PORTFOLIO_DATA.skills,
+        projects: parsed.projects || INITIAL_PORTFOLIO_DATA.projects,
+        media: parsed.media || INITIAL_PORTFOLIO_DATA.media,
+        experience: parsed.experience || INITIAL_PORTFOLIO_DATA.experience,
+        certifications: parsed.certifications || INITIAL_PORTFOLIO_DATA.certifications,
+        honors: parsed.honors || INITIAL_PORTFOLIO_DATA.honors,
+      };
+    }
+  } catch (err) {
+    console.warn("Could not read local portfolio data:", err);
+  }
+  return INITIAL_PORTFOLIO_DATA;
+}
+
+export function saveLocalData(data) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    window.dispatchEvent(
+      new CustomEvent("portfolio_data_updated", { detail: data })
+    );
+  } catch (err) {
+    console.error("Failed to save local portfolio data:", err);
+  }
+}
+
+export function resetLocalDataToDefaults() {
+  localStorage.removeItem(STORAGE_KEY);
+  window.dispatchEvent(
+    new CustomEvent("portfolio_data_updated", {
+      detail: INITIAL_PORTFOLIO_DATA,
+    })
+  );
+}
+
+export function getLocalMessages() {
+  try {
+    const saved = localStorage.getItem(MESSAGES_KEY);
+    return saved ? JSON.parse(saved) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveLocalMessage(msg) {
+  const current = getLocalMessages();
+  const newMsg = {
+    id: Date.now(),
+    name: msg.name,
+    email: msg.email,
+    message: msg.message,
+    created_at: new Date().toISOString(),
+  };
+  const updated = [newMsg, ...current];
+  try {
+    localStorage.setItem(MESSAGES_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.error("Failed to save contact message locally:", e);
+  }
+  return newMsg;
+}
+
+export function deleteLocalMessage(id) {
+  const current = getLocalMessages();
+  const updated = current.filter((m) => m.id !== id);
+  try {
+    localStorage.setItem(MESSAGES_KEY, JSON.stringify(updated));
+  } catch (e) {
+    console.error("Failed to delete contact message locally:", e);
+  }
+  return updated;
+}
+
 export const FALLBACK_CONTENT = {
-  home: {
-    eyebrow: "LAHORE, PK",
-    headline_line1: "Computer",
-    headline_line2: "Engineer",
-    headline_accent: "",
-    subheadline:
-      "I build the layer where hardware & Software meets decision-making — embedded C++ on real sensors, AI Software Development and machine learning that ships inside an actual product, not just a notebook.",
-    cta_primary: "View projects",
-    cta_secondary: "Get in touch",
-    meta_repos: "GitHub",
-    meta_focus: "Software Development · Edge AI · IoT",
-    meta_location: "Pakistan",
-    name: "Mudassar Hussain",
-    brand: "MUDASSAR.HUSSAIN",
-  },
-  about: {
-    eyebrow: "About",
-    
-    paragraphs: [
-      "I'm a Computer Engineering enthusiast with hands-on experience across software development, machine learning, and IoT systems. Most of my work lives at the intersection of the two worlds I like best: code that runs on real hardware, and models that make that hardware smarter.",
-      "My projects range from IoT-based environmental monitoring to machine-learning-powered web apps, usually combining AI with embedded systems to solve a concrete, physical problem rather than a purely digital one.",
-      "Right now I'm going deeper into Edge AI, automation, and intelligent systems — and looking for opportunities to put that knowledge into something people actually use.",
-    ],
-  },
-  contact: {
-    title: "Let's connect two boards.",
-    email: "infonxhussain@gmail.com",
-    github: "https://github.com/Mudassar-23",
-    linkedin: "https://www.linkedin.com/in/mudassar-hussain-8952102a0/",
-    handle: "Mudassar-23",
-    linkedin_label: "in/mudassar-hussain-8952102a0",
-  },
+  home: INITIAL_PORTFOLIO_DATA.home,
+  about: INITIAL_PORTFOLIO_DATA.about,
+  contact: INITIAL_PORTFOLIO_DATA.contact,
 };
 
-export const FALLBACK_SKILLS = [
-  "C++",
-  "Python",
-  "Arduino",
-  "OpenCV",
-  "MATLAB",
-  "Linux",
-  "Proteus",
-  "MySQL",
-  "Visual Studio",
-].map((name, i) => ({ id: i + 1, name, sort_order: i }));
-
-export const FALLBACK_PROJECTS = [
-  {
-    id: 1,
-    ref: "IC1",
-    tag: "ML · WEB",
-    name: "House Price Prediction App",
-    lang: "JavaScript",
-    stars: 1,
-    description:
-      "A web app that estimates property prices from listing features, pairing a trained regression model with a clean, interactive front end.",
-    github_url: "https://github.com/Mudassar-23/House-Price-Prediction-App",
-    live_url: "",
-    image_url: "",
-    caption: "",
-  },
-];
-
-export const FALLBACK_EXPERIENCE = [
-  {
-    id: 1,
-    title: "Computer Engineering Student",
-    company: "University",
-    start_date: "2022",
-    end_date: "Present",
-    description:
-      "Building projects across embedded systems, computer vision, and machine learning — from breadboard prototypes to shipped web apps.",
-    sort_order: 0,
-  },
-];
+export const FALLBACK_SKILLS = INITIAL_PORTFOLIO_DATA.skills;
+export const FALLBACK_PROJECTS = INITIAL_PORTFOLIO_DATA.projects;
+export const FALLBACK_EXPERIENCE = INITIAL_PORTFOLIO_DATA.experience;
+export const FALLBACK_MEDIA = INITIAL_PORTFOLIO_DATA.media;
+export const FALLBACK_CERTIFICATIONS = INITIAL_PORTFOLIO_DATA.certifications;
+export const FALLBACK_HONORS = INITIAL_PORTFOLIO_DATA.honors;

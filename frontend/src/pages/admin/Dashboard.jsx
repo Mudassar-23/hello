@@ -17,6 +17,7 @@ import {
   RefreshCw,
   Download,
   RotateCcw,
+  Video,
 } from "lucide-react";
 import { apiFetch, mediaUrl } from "../../api/client";
 import { getLocalData, resetLocalDataToDefaults } from "../../api/fallback";
@@ -29,6 +30,8 @@ const TABS = [
   { id: "Projects", label: "Projects", icon: FolderKanban },
   { id: "Experience", label: "Experience", icon: Briefcase },
   { id: "Media", label: "Media", icon: Images },
+  { id: "Certifications", label: "Certifications", icon: Upload },
+  { id: "Honors", label: "Honors & Awards", icon: Sparkles },
   { id: "Messages", label: "Messages", icon: Mail },
 ];
 
@@ -71,6 +74,14 @@ export default function AdminDashboard() {
   const [editingProjectId, setEditingProjectId] = useState(null);
   const [expForm, setExpForm] = useState(emptyExperience);
   const [editingExpId, setEditingExpId] = useState(null);
+  const [certifications, setCertifications] = useState([]);
+  const [honors, setHonors] = useState([]);
+  const emptyCert = { name: "", issuer: "", issue_date: "", sort_order: 0 };
+  const emptyHonor = { title: "", issuer: "", issue_date: "", description: "", url: "", associated_with: "", sort_order: 0 };
+  const [certForm, setCertForm] = useState(emptyCert);
+  const [honorForm, setHonorForm] = useState(emptyHonor);
+  const [editingCertId, setEditingCertId] = useState(null);
+  const [editingHonorId, setEditingHonorId] = useState(null);
 
   const flash = (text, isError = false) => {
     setMsg(isError ? "" : text);
@@ -80,13 +91,15 @@ export default function AdminDashboard() {
   const loadAll = useCallback(async () => {
     setLoading(true);
     try {
-      const [c, s, p, e, m, inbox] = await Promise.all([
+      const [c, s, p, e, m, inbox, certs, honorsData] = await Promise.all([
         apiFetch("/api/content"),
         apiFetch("/api/skills"),
         apiFetch("/api/projects"),
         apiFetch("/api/experience"),
         apiFetch("/api/media"),
         apiFetch("/api/contact/messages").catch(() => []),
+        apiFetch("/api/certifications").catch(() => []),
+        apiFetch("/api/honors").catch(() => []),
       ]);
       setContent(c);
       setSkills(s);
@@ -94,6 +107,8 @@ export default function AdminDashboard() {
       setExperience(e);
       setMedia(m);
       setMessages(inbox || []);
+      setCertifications(certs || []);
+      setHonors(honorsData || []);
       flash("");
     } catch (e) {
       flash(e.message, true);
@@ -101,6 +116,56 @@ export default function AdminDashboard() {
       setLoading(false);
     }
   }, []);
+
+  const handleDragStart = (e, index, type) => {
+    e.dataTransfer.setData("type", type);
+    e.dataTransfer.setData("index", index);
+  };
+
+  const handleDragOver = (e) => {
+    e.preventDefault();
+  };
+
+  const handleDrop = async (e, targetIndex, type) => {
+    e.preventDefault();
+    const draggedType = e.dataTransfer.getData("type");
+    if (draggedType !== type) return;
+
+    const sourceIndex = parseInt(e.dataTransfer.getData("index"), 10);
+    if (sourceIndex === targetIndex || isNaN(sourceIndex)) return;
+
+    let items = type === "projects" ? [...projects] : [...media];
+    const [moved] = items.splice(sourceIndex, 1);
+    items.splice(targetIndex, 0, moved);
+
+    const originalSortOrders = (type === "projects" ? projects : media)
+      .map((i) => i.sort_order || 0)
+      .sort((a, b) => a - b);
+
+    items = items.map((item, idx) => ({
+      ...item,
+      sort_order: originalSortOrders[idx],
+    }));
+
+    if (type === "projects") setProjects(items);
+    else setMedia(items);
+
+    try {
+      await Promise.all(
+        items.map((item) =>
+          apiFetch(`/api/projects/${item.id}`, {
+            method: "PUT",
+            body: JSON.stringify({ sort_order: item.sort_order }),
+          })
+        )
+      );
+      flash(`${type} order saved!`);
+      loadAll();
+    } catch (ex) {
+      flash("Failed to save order: " + ex.message, true);
+      loadAll();
+    }
+  };
 
   const exportPortfolioData = () => {
     const currentData = getLocalData();
@@ -541,8 +606,16 @@ export default function AdminDashboard() {
               <div className="admin-card">
                 <h3>All projects</h3>
                 <div className="item-list">
-                  {projects.map((p) => (
-                    <div className="item-row" key={p.id}>
+                  {projects.map((p, idx) => (
+                    <div
+                      className="item-row"
+                      key={p.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, idx, "projects")}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, idx, "projects")}
+                      style={{ cursor: "grab" }}
+                    >
                       <div className="item-row-main">
                         {p.image_url ? (
                           <img
@@ -771,8 +844,8 @@ export default function AdminDashboard() {
             <div className="admin-card">
               <h3>Media gallery</h3>
               <p className="admin-hint">
-                Website screenshots uploaded on Projects appear here with the
-                project name — and on the public Media section.
+                Project screenshots &amp; 50MB+ video demos uploaded here appear on the public Media section.
+                Videos up to 50MB+ are stored safely in client IndexedDB, or place static MP4 files in <code>frontend/public/videos/</code>.
               </p>
               {media.length === 0 ? (
                 <p className="empty-hint">
@@ -780,36 +853,398 @@ export default function AdminDashboard() {
                 </p>
               ) : (
                 <div className="media-grid">
-                  {media.map((item) => (
-                    <div className="media-card" key={item.id}>
-                      <img src={mediaUrl(item.image_url)} alt={item.name} />
-                      <div className="media-meta">
-                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: "8px" }}>
-                          <div>
-                            <h3>{item.name}</h3>
-                            <p>{item.caption || "Website interface"}</p>
-                          </div>
-                          <button
-                            type="button"
-                            className="btn btn-ghost admin-icon-btn"
-                            title={`Delete media for ${item.name}`}
-                            style={{ color: "#f87171", flexShrink: 0 }}
-                            onClick={async () => {
-                              if (!confirm(`Delete media screenshot for "${item.name}"?`)) return;
-                              try {
-                                await apiFetch(`/api/media/${item.id}`, {
-                                  method: "DELETE",
-                                });
-                                await loadAll();
-                                flash("Media item deleted.");
-                              } catch (ex) {
-                                flash(ex.message, true);
-                              }
-                            }}
-                          >
-                            <Trash2 size={14} />
-                          </button>
+                  {media.map((item, idx) => (
+                    <div
+                      className="media-card"
+                      key={item.id}
+                      draggable
+                      onDragStart={(e) => handleDragStart(e, idx, "media")}
+                      onDragOver={handleDragOver}
+                      onDrop={(e) => handleDrop(e, idx, "media")}
+                      style={{ position: "relative", cursor: "grab" }}
+                    >
+                      <div style={{ position: "relative" }}>
+                        <img src={mediaUrl(item.image_url)} alt={item.name} style={{ width: "100%", height: 160, objectFit: "cover" }} />
+                        <button
+                          type="button"
+                          className="btn btn-ghost"
+                          title={`Delete media for ${item.name}`}
+                          style={{
+                            position: "absolute",
+                            top: 8,
+                            right: 8,
+                            background: "rgba(10, 15, 12, 0.82)",
+                            border: "1px solid rgba(248, 113, 113, 0.4)",
+                            color: "#f87171",
+                            borderRadius: "6px",
+                            padding: "5px 8px",
+                            cursor: "pointer",
+                            backdropFilter: "blur(4px)",
+                          }}
+                          onClick={async () => {
+                            if (!confirm(`Delete media screenshot for "${item.name}"?`)) return;
+                            try {
+                              await apiFetch(`/api/media/${item.id}`, {
+                                method: "DELETE",
+                              });
+                              await loadAll();
+                              flash("Media item deleted.");
+                            } catch (ex) {
+                              flash(ex.message, true);
+                            }
+                          }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      </div>
+
+                      <div style={{ padding: "14px 16px", display: "flex", flexDirection: "column", gap: "10px" }}>
+                        <div>
+                          <h3 style={{ margin: "0 0 2px", fontSize: "14.5px", fontWeight: 600, color: "var(--text)" }}>
+                            {item.name}
+                          </h3>
+                          <p style={{ margin: 0, fontSize: "12px", color: "var(--text-dim)" }}>
+                            {item.caption || "Website interface"}
+                          </p>
                         </div>
+
+                        <div
+                          style={{
+                            paddingTop: "10px",
+                            borderTop: "1px solid var(--line)",
+                            display: "flex",
+                            alignItems: "center",
+                            justifyContent: "space-between",
+                            gap: "8px",
+                            flexWrap: "wrap",
+                          }}
+                        >
+                          <div style={{ display: "flex", alignItems: "center", gap: "6px", flexWrap: "wrap" }}>
+                            <label
+                              className="btn btn-ghost"
+                              style={{
+                                margin: 0,
+                                fontSize: "11.5px",
+                                padding: "5px 10px",
+                                color: "var(--signal)",
+                                border: "1px solid rgba(110,231,183,0.3)",
+                                background: "rgba(110,231,183,0.08)",
+                                borderRadius: "6px",
+                                cursor: "pointer",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "5px",
+                              }}
+                            >
+                              <Video size={13} /> {item.video_url ? "Change Video" : "Upload Video"}
+                              <input
+                                type="file"
+                                accept="video/mp4,video/webm,video/ogg"
+                                style={{ display: "none" }}
+                                onChange={async (ev) => {
+                                  const file = ev.target.files?.[0];
+                                  if (!file) return;
+                                  const fd = new FormData();
+                                  fd.append("file", file);
+                                  try {
+                                    await apiFetch(`/api/media/${item.id}/video`, {
+                                      method: "POST",
+                                      body: fd,
+                                    });
+                                    await loadAll();
+                                    flash("Project video uploaded successfully!");
+                                  } catch (ex) {
+                                    flash(ex.message, true);
+                                  } finally {
+                                    ev.target.value = "";
+                                  }
+                                }}
+                              />
+                            </label>
+
+                            <button
+                              type="button"
+                              className="btn btn-ghost"
+                              style={{
+                                fontSize: "11.5px",
+                                padding: "5px 10px",
+                                borderRadius: "6px",
+                                border: "1px solid var(--line)",
+                                color: "var(--text-dim)",
+                              }}
+                              onClick={async () => {
+                                const url = prompt(
+                                  "Enter Video Link (YouTube URL or MP4 direct link):",
+                                  item.video_url || ""
+                                );
+                                if (url === null) return;
+                                try {
+                                  await apiFetch(`/api/media/${item.id}`, {
+                                    method: "PUT",
+                                    body: JSON.stringify({ video_url: url.trim() }),
+                                  });
+                                  await loadAll();
+                                  flash("Video URL updated.");
+                                } catch (ex) {
+                                  flash(ex.message, true);
+                                }
+                              }}
+                            >
+                              Paste Link
+                            </button>
+                          </div>
+
+                          {item.video_url && (
+                            <span
+                              style={{
+                                fontSize: "11px",
+                                color: "var(--signal)",
+                                fontFamily: "'JetBrains Mono', monospace",
+                                display: "inline-flex",
+                                alignItems: "center",
+                                gap: "4px",
+                              }}
+                            >
+                              ✓ Video Attached
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── CERTIFICATIONS TAB ─────────────────────────────────────── */}
+          {!loading && tab === "Certifications" && (
+            <div className="admin-card">
+              <h3>Certifications</h3>
+              <p className="admin-hint">Add certifications with name, issuer, date and upload the PDF file. Files are stored in backend and synced to frontend.</p>
+
+              {/* Add / Edit Form */}
+              <div className="form-block" style={{ marginBottom: 24 }}>
+                <h4 style={{ color: "var(--signal)", fontSize: 13, marginBottom: 12 }}>{editingCertId ? "Edit Certification" : "Add New Certification"}</h4>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                  <div className="field-group">
+                    <label>Name *</label>
+                    <input value={certForm.name} onChange={(e) => setCertForm((f) => ({ ...f, name: e.target.value }))} placeholder="e.g. AWS Cloud Practitioner" />
+                  </div>
+                  <div className="field-group">
+                    <label>Issuer</label>
+                    <input value={certForm.issuer} onChange={(e) => setCertForm((f) => ({ ...f, issuer: e.target.value }))} placeholder="e.g. Amazon Web Services" />
+                  </div>
+                  <div className="field-group">
+                    <label>Issue Date</label>
+                    <input value={certForm.issue_date} onChange={(e) => setCertForm((f) => ({ ...f, issue_date: e.target.value }))} placeholder="e.g. Jan 2026" />
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={!certForm.name.trim()}
+                    onClick={async () => {
+                      try {
+                        if (editingCertId) {
+                          await apiFetch(`/api/certifications/${editingCertId}`, { method: "PUT", body: JSON.stringify(certForm) });
+                          flash("Certification updated!");
+                        } else {
+                          await apiFetch("/api/certifications", { method: "POST", body: JSON.stringify(certForm) });
+                          flash("Certification added!");
+                        }
+                        setCertForm(emptyCert);
+                        setEditingCertId(null);
+                        await loadAll();
+                      } catch (ex) { flash(ex.message, true); }
+                    }}
+                  >{editingCertId ? "Update" : "Add Certification"}</button>
+                  {editingCertId && (
+                    <button type="button" className="btn btn-ghost" onClick={() => { setCertForm(emptyCert); setEditingCertId(null); }}>Cancel</button>
+                  )}
+                </div>
+              </div>
+
+              {/* List */}
+              {certifications.length === 0 ? (
+                <p className="empty-hint">No certifications yet. Add one above.</p>
+              ) : (
+                <div className="item-list">
+                  {certifications.map((cert) => (
+                    <div className="item-row" key={cert.id} style={{ alignItems: "flex-start", gap: 12 }}>
+                      <div style={{ flex: 1 }}>
+                        <h3 style={{ margin: "0 0 4px", fontSize: 14 }}>{cert.name}</h3>
+                        <p style={{ margin: "0 0 4px", fontSize: 12, color: "var(--text-dim)" }}>
+                          {cert.issuer}{cert.issue_date ? ` · ${cert.issue_date}` : ""}
+                        </p>
+                        {cert.pdf_url ? (
+                          <a href={cert.pdf_url} target="_blank" rel="noreferrer" style={{ fontSize: 11, color: "var(--signal)", display: "inline-flex", alignItems: "center", gap: 4 }}>
+                            📄 View PDF
+                          </a>
+                        ) : (
+                          <span style={{ fontSize: 11, color: "var(--text-faint)" }}>No PDF uploaded</span>
+                        )}
+                      </div>
+                      <div style={{ display: "flex", gap: 6, alignItems: "center", flexWrap: "wrap" }}>
+                        {/* Upload PDF button */}
+                        <label className="btn btn-ghost" style={{ fontSize: "11.5px", padding: "5px 10px", color: "var(--signal)", border: "1px solid rgba(110,231,183,0.3)", background: "rgba(110,231,183,0.08)", borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                          <Upload size={12} /> {cert.pdf_url ? "Replace PDF" : "Upload PDF"}
+                          <input
+                            type="file"
+                            accept="application/pdf"
+                            style={{ display: "none" }}
+                            onChange={async (ev) => {
+                              const file = ev.target.files?.[0];
+                              if (!file) return;
+                              const fd = new FormData();
+                              fd.append("file", file);
+                              try {
+                                await apiFetch(`/api/certifications/${cert.id}/pdf`, { method: "POST", body: fd });
+                                await loadAll();
+                                flash("PDF uploaded and synced to frontend!");
+                              } catch (ex) { flash(ex.message, true); }
+                              finally { ev.target.value = ""; }
+                            }}
+                          />
+                        </label>
+                        <button type="button" className="btn btn-ghost admin-icon-btn" title="Edit" onClick={() => { setCertForm({ name: cert.name, issuer: cert.issuer, issue_date: cert.issue_date, sort_order: cert.sort_order }); setEditingCertId(cert.id); }}>
+                          <Pencil size={13} />
+                        </button>
+                        <button type="button" className="btn btn-ghost admin-icon-btn" title="Delete" style={{ color: "#f87171" }}
+                          onClick={async () => {
+                            if (!confirm(`Delete certification "${cert.name}"?`)) return;
+                            try {
+                              await apiFetch(`/api/certifications/${cert.id}`, { method: "DELETE" });
+                              await loadAll();
+                              flash("Certification deleted.");
+                            } catch (ex) { flash(ex.message, true); }
+                          }}
+                        ><Trash2 size={13} /></button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── HONORS & AWARDS TAB ─────────────────────────────────────── */}
+          {!loading && tab === "Honors" && (
+            <div className="admin-card">
+              <h3>Honors &amp; Awards</h3>
+              <p className="admin-hint">Add competition wins, dean's lists, and academic honors. Upload a shield/badge image for each.</p>
+
+              {/* Add / Edit Form */}
+              <div className="form-block" style={{ marginBottom: 24 }}>
+                <h4 style={{ color: "var(--signal)", fontSize: 13, marginBottom: 12 }}>{editingHonorId ? "Edit Honor/Award" : "Add New Honor/Award"}</h4>
+                <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginBottom: 12 }}>
+                  <div className="field-group">
+                    <label>Title *</label>
+                    <input value={honorForm.title} onChange={(e) => setHonorForm((f) => ({ ...f, title: e.target.value }))} placeholder="e.g. Idea Pitching Competition" />
+                  </div>
+                  <div className="field-group">
+                    <label>Issued By</label>
+                    <input value={honorForm.issuer} onChange={(e) => setHonorForm((f) => ({ ...f, issuer: e.target.value }))} placeholder="e.g. CareerCounselingSociety" />
+                  </div>
+                  <div className="field-group">
+                    <label>Issue Date</label>
+                    <input value={honorForm.issue_date} onChange={(e) => setHonorForm((f) => ({ ...f, issue_date: e.target.value }))} placeholder="e.g. Apr 2026" />
+                  </div>
+                  <div className="field-group">
+                    <label>Associated With</label>
+                    <input value={honorForm.associated_with} onChange={(e) => setHonorForm((f) => ({ ...f, associated_with: e.target.value }))} placeholder="e.g. FAST-NU" />
+                  </div>
+                  <div className="field-group" style={{ gridColumn: "1/-1" }}>
+                    <label>External Link (optional)</label>
+                    <input value={honorForm.url} onChange={(e) => setHonorForm((f) => ({ ...f, url: e.target.value }))} placeholder="https://..." />
+                  </div>
+                  <div className="field-group" style={{ gridColumn: "1/-1" }}>
+                    <label>Description</label>
+                    <textarea value={honorForm.description} onChange={(e) => setHonorForm((f) => ({ ...f, description: e.target.value }))} rows={3} placeholder="Describe the honor or achievement..." style={{ width: "100%", resize: "vertical", background: "var(--panel-alt)", border: "1px solid var(--line)", color: "var(--text)", borderRadius: 6, padding: "8px 10px", fontFamily: "inherit", fontSize: 13 }} />
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    disabled={!honorForm.title.trim()}
+                    onClick={async () => {
+                      try {
+                        if (editingHonorId) {
+                          await apiFetch(`/api/honors/${editingHonorId}`, { method: "PUT", body: JSON.stringify(honorForm) });
+                          flash("Honor updated!");
+                        } else {
+                          await apiFetch("/api/honors", { method: "POST", body: JSON.stringify(honorForm) });
+                          flash("Honor added!");
+                        }
+                        setHonorForm(emptyHonor);
+                        setEditingHonorId(null);
+                        await loadAll();
+                      } catch (ex) { flash(ex.message, true); }
+                    }}
+                  >{editingHonorId ? "Update" : "Add Honor/Award"}</button>
+                  {editingHonorId && (
+                    <button type="button" className="btn btn-ghost" onClick={() => { setHonorForm(emptyHonor); setEditingHonorId(null); }}>Cancel</button>
+                  )}
+                </div>
+              </div>
+
+              {/* List */}
+              {honors.length === 0 ? (
+                <p className="empty-hint">No honors yet. Add one above.</p>
+              ) : (
+                <div className="item-list">
+                  {honors.map((honor) => (
+                    <div className="item-row" key={honor.id} style={{ alignItems: "flex-start", gap: 12 }}>
+                      {honor.image_url && (
+                        <img src={mediaUrl(honor.image_url)} alt={honor.title} style={{ width: 52, height: 52, objectFit: "contain", borderRadius: 8, border: "1px solid var(--line)", background: "var(--panel-alt)", flexShrink: 0 }} />
+                      )}
+                      <div style={{ flex: 1 }}>
+                        <h3 style={{ margin: "0 0 2px", fontSize: 14 }}>{honor.title}</h3>
+                        <p style={{ margin: "0 0 4px", fontSize: 12, color: "var(--text-dim)" }}>
+                          {honor.issuer}{honor.issue_date ? ` · ${honor.issue_date}` : ""}
+                          {honor.associated_with ? ` · ${honor.associated_with}` : ""}
+                        </p>
+                        {honor.description && <p style={{ margin: "0 0 4px", fontSize: 12, color: "var(--text-dim)", lineHeight: 1.5 }}>{honor.description.slice(0, 120)}{honor.description.length > 120 ? "..." : ""}</p>}
+                      </div>
+                      <div style={{ display: "flex", gap: 6, flexShrink: 0, flexWrap: "wrap" }}>
+                        {/* Upload shield image */}
+                        <label className="btn btn-ghost" style={{ fontSize: "11.5px", padding: "5px 10px", color: "var(--signal)", border: "1px solid rgba(110,231,183,0.3)", background: "rgba(110,231,183,0.08)", borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5 }}>
+                          <Upload size={12} /> {honor.image_url ? "Change Shield" : "Upload Shield"}
+                          <input
+                            type="file"
+                            accept="image/png,image/jpeg,image/webp,image/svg+xml"
+                            style={{ display: "none" }}
+                            onChange={async (ev) => {
+                              const file = ev.target.files?.[0];
+                              if (!file) return;
+                              const fd = new FormData();
+                              fd.append("file", file);
+                              try {
+                                await apiFetch(`/api/honors/${honor.id}/image`, { method: "POST", body: fd });
+                                await loadAll();
+                                flash("Shield image uploaded!");
+                              } catch (ex) { flash(ex.message, true); }
+                              finally { ev.target.value = ""; }
+                            }}
+                          />
+                        </label>
+                        <button type="button" className="btn btn-ghost admin-icon-btn" title="Edit"
+                          onClick={() => {
+                            setHonorForm({ title: honor.title, issuer: honor.issuer, issue_date: honor.issue_date, description: honor.description, url: honor.url, associated_with: honor.associated_with, sort_order: honor.sort_order });
+                            setEditingHonorId(honor.id);
+                          }}><Pencil size={13} /></button>
+                        <button type="button" className="btn btn-ghost admin-icon-btn" title="Delete" style={{ color: "#f87171" }}
+                          onClick={async () => {
+                            if (!confirm(`Delete honor "${honor.title}"?`)) return;
+                            try {
+                              await apiFetch(`/api/honors/${honor.id}`, { method: "DELETE" });
+                              await loadAll();
+                              flash("Honor deleted.");
+                            } catch (ex) { flash(ex.message, true); }
+                          }}
+                        ><Trash2 size={13} /></button>
                       </div>
                     </div>
                   ))}

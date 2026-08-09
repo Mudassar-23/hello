@@ -28,6 +28,7 @@ Docs (dev only): http://127.0.0.1:8000/docs
 
 ```powershell
 cd frontend
+
 npm install
 npm run dev -- --host 127.0.0.1 --port 5173
 ```

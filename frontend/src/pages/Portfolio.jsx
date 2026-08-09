@@ -8,19 +8,23 @@ import {
   X,
   TerminalSquare,
   Cpu,
+  Play,
 } from "lucide-react";
 import { apiFetch, mediaUrl } from "../api/client";
 import {
+  FALLBACK_CERTIFICATIONS,
   FALLBACK_CONTENT,
   FALLBACK_EXPERIENCE,
+  FALLBACK_HONORS,
+  FALLBACK_MEDIA,
   FALLBACK_PROJECTS,
   FALLBACK_SKILLS,
-  FALLBACK_MEDIA,
   getLocalData,
 } from "../api/fallback";
 import CircuitScene from "../components/CircuitScene";
 import NetworkBackground from "../components/NetworkBackground";
 import ProjectModal from "../components/ProjectModal";
+import VideoModal from "../components/VideoModal";
 import { Reveal, useReveal } from "../components/Reveal";
 import { GitHubIcon, LinkedInIcon } from "../components/SocialIcons";
 import "../styles/portfolio.css";
@@ -32,6 +36,8 @@ const navLinks = [
   { href: "#projects", label: "Projects" },
   { href: "#media", label: "Media" },
   { href: "#experience", label: "Experience" },
+  { href: "#certifications", label: "Certifications" },
+  { href: "#honors", label: "Honors" },
   { href: "#contact", label: "Contact" },
 ];
 
@@ -45,6 +51,7 @@ export default function Portfolio() {
   const reduceMotion = useReducedMotion();
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
+  const [selectedVideo, setSelectedVideo] = useState(null);
   const [glowKey, setGlowKey] = useState(0);
   const [heroRef] = useReveal(0.05);
 
@@ -53,6 +60,8 @@ export default function Portfolio() {
   const [projects, setProjects] = useState(FALLBACK_PROJECTS);
   const [experience, setExperience] = useState(FALLBACK_EXPERIENCE);
   const [media, setMedia] = useState(FALLBACK_MEDIA);
+  const [certifications, setCertifications] = useState(FALLBACK_CERTIFICATIONS);
+  const [honors, setHonors] = useState(FALLBACK_HONORS);
   const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
@@ -66,12 +75,14 @@ export default function Portfolio() {
     let cancelled = false;
     const loadData = async () => {
       try {
-        const [c, s, p, e, m] = await Promise.all([
+        const [c, s, p, e, m, certs, honorsData] = await Promise.all([
           apiFetch("/api/content"),
           apiFetch("/api/skills"),
           apiFetch("/api/projects"),
           apiFetch("/api/experience"),
           apiFetch("/api/media"),
+          apiFetch("/api/certifications").catch(() => []),
+          apiFetch("/api/honors").catch(() => []),
         ]);
         if (cancelled) return;
         if (c) setContent(c);
@@ -79,6 +90,8 @@ export default function Portfolio() {
         if (p) setProjects(p);
         if (e) setExperience(e);
         if (m) setMedia(m);
+        if (certs) setCertifications(certs);
+        if (honorsData) setHonors(honorsData);
       } catch {
         const local = getLocalData();
         if (cancelled) return;
@@ -87,6 +100,8 @@ export default function Portfolio() {
         setProjects(local.projects);
         setExperience(local.experience);
         setMedia(local.media);
+        setCertifications(local.certifications || []);
+        setHonors(local.honors || []);
       }
     };
 
@@ -96,11 +111,15 @@ export default function Portfolio() {
       if (cancelled) return;
       if (evt?.detail) {
         const d = evt.detail;
-        setContent({ home: d.home, about: d.about, contact: d.contact });
-        setSkills(d.skills);
-        setProjects(d.projects);
-        setExperience(d.experience);
-        setMedia(d.media);
+        if (d.home || d.about || d.contact) {
+          setContent({ home: d.home, about: d.about, contact: d.contact });
+        }
+        if (d.skills) setSkills(d.skills);
+        if (d.projects) setProjects(d.projects);
+        if (d.experience) setExperience(d.experience);
+        if (d.media) setMedia(d.media);
+        if (d.certifications) setCertifications(d.certifications);
+        if (d.honors) setHonors(d.honors);
       } else {
         loadData();
       }
@@ -273,7 +292,7 @@ export default function Portfolio() {
         <Reveal className="section-head">
           <span className="eyebrow">Projects</span>
           <h2></h2>
-          
+
         </Reveal>
         <div className="project-grid">
           {projects.map((p, i) => (
@@ -303,17 +322,30 @@ export default function Portfolio() {
                   <span className="lang-dot" /> {p.lang}
                   {p.stars > 0 ? ` · ${p.stars}★` : ""}
                 </span>
-                {p.github_url && (
-                  <a
-                    className="card-link"
-                    href={p.github_url}
-                    target="_blank"
-                    rel="noreferrer"
-                    onClick={(e) => e.stopPropagation()}
-                  >
-                    View repo <ArrowUpRight size={13} />
-                  </a>
-                )}
+                <div style={{ display: "flex", gap: "12px" }}>
+                  {p.live_url && (
+                    <a
+                      className="card-link"
+                      href={p.live_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      Live Site <ArrowUpRight size={13} />
+                    </a>
+                  )}
+                  {p.github_url && (
+                    <a
+                      className="card-link"
+                      href={p.github_url}
+                      target="_blank"
+                      rel="noreferrer"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      View repo <ArrowUpRight size={13} />
+                    </a>
+                  )}
+                </div>
               </div>
             </Reveal>
           ))}
@@ -333,7 +365,22 @@ export default function Portfolio() {
               <Reveal className="media-card" delay={i * 70} key={item.id}>
                 <img src={mediaUrl(item.image_url)} alt={item.name} />
                 <div className="media-meta">
-                  <h3>{item.name}</h3>
+                  <div className="media-meta-main">
+                    <h3>{item.name}</h3>
+                    <p>{item.caption || "Website interface"}</p>
+                  </div>
+                  <button
+                    type="button"
+                    className="media-video-btn"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedVideo(item);
+                    }}
+                    title={`Watch video demo for ${item.name}`}
+                  >
+                    <Play size={12} fill="currentColor" />
+                    <span>Video</span>
+                  </button>
                 </div>
               </Reveal>
             ))}
@@ -362,14 +409,80 @@ export default function Portfolio() {
         </div>
       </section>
 
-      {selectedProject && (
-        <div key={glowKey} className="glow-burst" aria-hidden="true" />
+      {/* ── CERTIFICATIONS SECTION ── */}
+      {certifications.length > 0 && (
+        <section id="certifications">
+          <Reveal className="section-head">
+            <span className="eyebrow">Certifications</span>
+            <h2>Credentials.</h2>
+          </Reveal>
+          <div className="cert-grid">
+            {certifications.map((cert, i) => (
+              <Reveal className="cert-card" delay={i * 60} key={cert.id}>
+                <div className="cert-icon">🎗</div>
+                <div className="cert-body">
+                  <h3>{cert.name}</h3>
+                  {cert.issuer && <p className="cert-issuer">{cert.issuer}</p>}
+                  {cert.issue_date && <p className="cert-date">{cert.issue_date}</p>}
+                </div>
+                {cert.pdf_url && (
+                  <a
+                    href={cert.pdf_url.startsWith("data:") ? cert.pdf_url : cert.pdf_url}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="cert-link"
+                    title="Open certificate PDF"
+                  >
+                    <ArrowUpRight size={14} />
+                  </a>
+                )}
+              </Reveal>
+            ))}
+          </div>
+        </section>
       )}
-      {selectedProject && (
-        <ProjectModal
-          project={selectedProject}
-          onClose={() => setSelectedProject(null)}
-        />
+
+      {/* ── HONORS & AWARDS SECTION ── */}
+      {honors.length > 0 && (
+        <section id="honors">
+          <Reveal className="section-head">
+            <span className="eyebrow">Honors &amp; Awards</span>
+            <h2>Recognition.</h2>
+          </Reveal>
+          <div className="honors-list">
+            {honors.map((honor, i) => (
+              <Reveal className="honor-item" delay={i * 80} key={honor.id}>
+                {honor.image_url ? (
+                  <img
+                    src={mediaUrl(honor.image_url)}
+                    alt={honor.title}
+                    className="honor-shield"
+                  />
+                ) : (
+                  <div className="honor-shield honor-shield-placeholder">🏆</div>
+                )}
+                <div className="honor-body">
+                  <div className="honor-head">
+                    <h3>{honor.title}</h3>
+                    {honor.url && (
+                      <a href={honor.url} target="_blank" rel="noreferrer" className="honor-link">
+                        <ArrowUpRight size={13} />
+                      </a>
+                    )}
+                  </div>
+                  <div className="honor-meta">
+                    {honor.issuer && <span>{honor.issuer}</span>}
+                    {honor.issue_date && <span>{honor.issue_date}</span>}
+                    {honor.associated_with && <span>{honor.associated_with}</span>}
+                  </div>
+                  {honor.description && (
+                    <p className="honor-desc">{honor.description}</p>
+                  )}
+                </div>
+              </Reveal>
+            ))}
+          </div>
+        </section>
       )}
 
       <section id="contact">
@@ -468,9 +581,8 @@ export default function Portfolio() {
             </label>
             <button
               type="submit"
-              className={`btn btn-primary btn-block contact-submit ${
-                glowField === "submit" ? "glow-pulse" : ""
-              }`}
+              className={`btn btn-primary btn-block contact-submit ${glowField === "submit" ? "glow-pulse" : ""
+                }`}
               disabled={contactSending}
             >
               {contactSending ? "Sending…" : "Send message"}
@@ -492,6 +604,16 @@ export default function Portfolio() {
         <span>&copy; 2026 {home.name || "Mudassar Hussain"}</span>
         <span>BUILT WITH REACT &amp; FASTAPI</span>
       </footer>
+
+      {selectedProject && (
+        <div key={glowKey} className="glow-burst" aria-hidden="true" />
+      )}
+      {selectedProject && (
+        <ProjectModal project={selectedProject} onClose={() => setSelectedProject(null)} />
+      )}
+      {selectedVideo && (
+        <VideoModal item={selectedVideo} onClose={() => setSelectedVideo(null)} />
+      )}
 
       <button
         className="admin-fab"

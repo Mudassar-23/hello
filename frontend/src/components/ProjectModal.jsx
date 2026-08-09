@@ -28,16 +28,28 @@ export default function ProjectModal({ project, onClose }) {
             <span className="lang-dot" /> {project.lang}
             {project.stars > 0 ? ` · ${project.stars}★` : ""}
           </span>
-          {project.github_url && (
-            <a
-              href={project.github_url}
-              target="_blank"
-              rel="noreferrer"
-              className="btn btn-primary"
-            >
-              Open repository <ArrowUpRight size={14} />
-            </a>
-          )}
+          <div style={{ display: "flex", gap: "10px" }}>
+            {project.live_url && (
+              <a
+                href={project.live_url}
+                target="_blank"
+                rel="noreferrer"
+                className="btn btn-primary"
+              >
+                Live Site <ArrowUpRight size={14} />
+              </a>
+            )}
+            {project.github_url && (
+              <a
+                href={project.github_url}
+                target="_blank"
+                rel="noreferrer"
+                className={project.live_url ? "btn btn-ghost" : "btn btn-primary"}
+              >
+                Open repository <ArrowUpRight size={14} />
+              </a>
+            )}
+          </div>
         </div>
       </div>
     </div>

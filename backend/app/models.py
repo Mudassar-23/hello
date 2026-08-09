@@ -59,6 +59,7 @@ class Project(Base):
     lang: Mapped[str] = mapped_column(String(64), nullable=False, default="")
     stars: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
     image_path: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    video_path: Mapped[str] = mapped_column(String(500), nullable=False, default="")
     caption: Mapped[str] = mapped_column(String(300), nullable=False, default="")
     sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
 
@@ -71,3 +72,29 @@ class ContactMessage(Base):
     email: Mapped[str] = mapped_column(String(200), nullable=False)
     message: Mapped[str] = mapped_column(Text, nullable=False)
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), server_default=func.now())
+
+
+class Certification(Base):
+    __tablename__ = "certifications"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    name: Mapped[str] = mapped_column(String(300), nullable=False)
+    issuer: Mapped[str] = mapped_column(String(300), nullable=False, default="")
+    issue_date: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    pdf_path: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+
+
+class HonorAward(Base):
+    __tablename__ = "honors_awards"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True)
+    title: Mapped[str] = mapped_column(String(300), nullable=False)
+    issuer: Mapped[str] = mapped_column(String(300), nullable=False, default="")
+    issue_date: Mapped[str] = mapped_column(String(64), nullable=False, default="")
+    description: Mapped[str] = mapped_column(Text, nullable=False, default="")
+    url: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    associated_with: Mapped[str] = mapped_column(String(300), nullable=False, default="")
+    image_path: Mapped[str] = mapped_column(String(500), nullable=False, default="")
+    sort_order: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
+

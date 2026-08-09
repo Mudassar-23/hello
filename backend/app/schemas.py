@@ -105,7 +105,9 @@ class MediaOut(BaseModel):
     name: str
     caption: str = ""
     image_url: str
+    video_url: str = ""
     github_url: str = ""
+    sort_order: int = 0
 
 
 class ContentOut(BaseModel):
@@ -133,3 +135,64 @@ class ContactMessageOut(BaseModel):
     email: str
     message: str
     created_at: Optional[Any] = None
+
+
+# ── Certifications ──────────────────────────────────────────────────────────────
+
+class CertificationCreate(BaseModel):
+    name: str = Field(min_length=1, max_length=300)
+    issuer: str = ""
+    issue_date: str = ""
+    sort_order: int = 0
+
+
+class CertificationUpdate(BaseModel):
+    name: Optional[str] = Field(default=None, min_length=1, max_length=300)
+    issuer: Optional[str] = None
+    issue_date: Optional[str] = None
+    sort_order: Optional[int] = None
+
+
+class CertificationOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    name: str
+    issuer: str = ""
+    issue_date: str = ""
+    pdf_url: str = ""
+    sort_order: int = 0
+
+
+# ── Honors & Awards ─────────────────────────────────────────────────────────────
+
+class HonorAwardCreate(BaseModel):
+    title: str = Field(min_length=1, max_length=300)
+    issuer: str = ""
+    issue_date: str = ""
+    description: str = ""
+    url: str = ""
+    associated_with: str = ""
+    sort_order: int = 0
+
+
+class HonorAwardUpdate(BaseModel):
+    title: Optional[str] = Field(default=None, min_length=1, max_length=300)
+    issuer: Optional[str] = None
+    issue_date: Optional[str] = None
+    description: Optional[str] = None
+    url: Optional[str] = None
+    associated_with: Optional[str] = None
+    sort_order: Optional[int] = None
+
+
+class HonorAwardOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: int
+    title: str
+    issuer: str = ""
+    issue_date: str = ""
+    description: str = ""
+    url: str = ""
+    associated_with: str = ""
+    image_url: str = ""
+    sort_order: int = 0
