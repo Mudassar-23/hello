@@ -99,10 +99,13 @@ async function handleLocalApi(path, options = {}) {
   if (path === "/api/auth/login") {
     const username = bodyData?.username?.trim();
     const password = bodyData?.password;
-    if (
-      (username === "MudassarChaudhary23" && password === "admin@1234#") ||
-      (username === "admin" && (password === "admin" || password === "admin123" || password === "changeme"))
-    ) {
+    const envUser = (import.meta.env.VITE_ADMIN_USERNAME || "").trim();
+    const envPass = import.meta.env.VITE_ADMIN_PASSWORD || "";
+
+    const isValidUser = username && (username === envUser || username === "admin");
+    const isValidPass = password && (password === envPass || password === "admin123" || password === "changeme");
+
+    if (isValidUser && isValidPass) {
       setAccessToken("local_admin_token");
       return { access_token: "local_admin_token" };
     }
