@@ -17,28 +17,6 @@ export function AuthProvider({ children }) {
     let cancelled = false;
     (async () => {
       const existing = getAccessToken();
-      // #region agent log
-      fetch("http://127.0.0.1:7248/ingest/5e5f19b9-bf0f-455d-a770-af37ab55c682", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "X-Debug-Session-Id": "291d6d",
-        },
-        body: JSON.stringify({
-          sessionId: "291d6d",
-          runId: "pre-fix",
-          hypothesisId: "A",
-          location: "AuthContext.jsx:boot",
-          message: "Auth boot",
-          data: {
-            hasAccessToken: Boolean(existing),
-            willRefreshOnlyIfMissing: !existing,
-            origin: typeof window !== "undefined" ? window.location.origin : null,
-          },
-          timestamp: Date.now(),
-        }),
-      }).catch(() => {});
-      // #endregion
       if (!existing) {
         try {
           await refreshAccessToken();

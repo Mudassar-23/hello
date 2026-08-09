@@ -505,12 +505,22 @@ export async function apiFetch(path, options = {}, _retried = false) {
 }
 
 export async function login(username, password) {
-  const data = await apiFetch("/api/auth/login", {
-    method: "POST",
-    body: JSON.stringify({ username, password }),
-  });
-  setAccessToken(data.access_token);
-  return data;
+  try {
+    const data = await apiFetch("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    });
+    setAccessToken(data.access_token);
+    return data;
+  } catch {
+    // Backend unreachable or returned error — use local fallback
+    const data = await handleLocalApi("/api/auth/login", {
+      method: "POST",
+      body: JSON.stringify({ username, password }),
+    });
+    setAccessToken(data.access_token);
+    return data;
+  }
 }
 
 export async function refreshAccessToken() {
