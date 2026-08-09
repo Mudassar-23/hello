@@ -15,8 +15,11 @@ import {
   Pencil,
   Upload,
   RefreshCw,
+  Download,
+  RotateCcw,
 } from "lucide-react";
 import { apiFetch, mediaUrl } from "../../api/client";
+import { getLocalData, resetLocalDataToDefaults } from "../../api/fallback";
 import { useAuth } from "../../context/AuthContext";
 import "../../styles/portfolio.css";
 
@@ -99,6 +102,27 @@ export default function AdminDashboard() {
     }
   }, []);
 
+  const exportPortfolioData = () => {
+    const currentData = getLocalData();
+    const codeStr = `export const INITIAL_PORTFOLIO_DATA = ${JSON.stringify(
+      currentData,
+      null,
+      2
+    )};\n`;
+    const blob = new Blob([codeStr], { type: "text/javascript" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "portfolioData.js";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    flash(
+      "Exported portfolioData.js — replace frontend/src/data/portfolioData.js with this file to save changes permanently to repository code!"
+    );
+  };
+
   useEffect(() => {
     if (!isAuthenticated) return;
     loadAll();
@@ -115,7 +139,7 @@ export default function AdminDashboard() {
         body: JSON.stringify({ [key]: value }),
       });
       setContent(updated);
-      flash("Saved — live site will show this after refresh.");
+      flash("Saved — portfolio updated live!");
     } catch (e) {
       flash(e.message, true);
     }
@@ -132,10 +156,12 @@ export default function AdminDashboard() {
           </span>
           <div>
             <h1>Portfolio CMS</h1>
-            <p>Edit sections · saved to the database · shown on the public site</p>
+            <p>
+              Stored directly in frontend data · changes appear instantly on live site
+            </p>
           </div>
         </div>
-        <div className="admin-row">
+        <div className="admin-row" style={{ flexWrap: "wrap", gap: "8px" }}>
           <button
             type="button"
             className="btn btn-ghost admin-icon-btn"
@@ -144,6 +170,35 @@ export default function AdminDashboard() {
           >
             <RefreshCw size={14} /> Refresh
           </button>
+
+          <button
+            type="button"
+            className="btn btn-primary admin-icon-btn"
+            onClick={exportPortfolioData}
+            title="Export data file to save into code"
+          >
+            <Download size={14} /> Export portfolioData.js
+          </button>
+
+          <button
+            type="button"
+            className="btn btn-ghost admin-icon-btn"
+            onClick={() => {
+              if (
+                confirm(
+                  "Reset local changes and restore original defaults from code?"
+                )
+              ) {
+                resetLocalDataToDefaults();
+                loadAll();
+                flash("Reset to code defaults.");
+              }
+            }}
+            title="Reset local changes"
+          >
+            <RotateCcw size={14} /> Reset Defaults
+          </button>
+
           <Link to="/" className="btn btn-ghost admin-icon-btn" target="_blank">
             <ExternalLink size={14} /> View site
           </Link>

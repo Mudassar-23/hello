@@ -15,6 +15,8 @@ import {
   FALLBACK_EXPERIENCE,
   FALLBACK_PROJECTS,
   FALLBACK_SKILLS,
+  FALLBACK_MEDIA,
+  getLocalData,
 } from "../api/fallback";
 import CircuitScene from "../components/CircuitScene";
 import NetworkBackground from "../components/NetworkBackground";
@@ -50,7 +52,7 @@ export default function Portfolio() {
   const [skills, setSkills] = useState(FALLBACK_SKILLS);
   const [projects, setProjects] = useState(FALLBACK_PROJECTS);
   const [experience, setExperience] = useState(FALLBACK_EXPERIENCE);
-  const [media, setMedia] = useState([]);
+  const [media, setMedia] = useState(FALLBACK_MEDIA);
   const [contactForm, setContactForm] = useState({
     name: "",
     email: "",
@@ -62,7 +64,7 @@ export default function Portfolio() {
 
   useEffect(() => {
     let cancelled = false;
-    (async () => {
+    const loadData = async () => {
       try {
         const [c, s, p, e, m] = await Promise.all([
           apiFetch("/api/content"),
@@ -72,17 +74,42 @@ export default function Portfolio() {
           apiFetch("/api/media"),
         ]);
         if (cancelled) return;
-        setContent(c);
-        setSkills(s);
-        setProjects(p);
-        setExperience(e);
-        setMedia(m);
+        if (c) setContent(c);
+        if (s) setSkills(s);
+        if (p) setProjects(p);
+        if (e) setExperience(e);
+        if (m) setMedia(m);
       } catch {
-        // keep fallbacks
+        const local = getLocalData();
+        if (cancelled) return;
+        setContent({ home: local.home, about: local.about, contact: local.contact });
+        setSkills(local.skills);
+        setProjects(local.projects);
+        setExperience(local.experience);
+        setMedia(local.media);
       }
-    })();
+    };
+
+    loadData();
+
+    const handleUpdate = (evt) => {
+      if (cancelled) return;
+      if (evt?.detail) {
+        const d = evt.detail;
+        setContent({ home: d.home, about: d.about, contact: d.contact });
+        setSkills(d.skills);
+        setProjects(d.projects);
+        setExperience(d.experience);
+        setMedia(d.media);
+      } else {
+        loadData();
+      }
+    };
+
+    window.addEventListener("portfolio_data_updated", handleUpdate);
     return () => {
       cancelled = true;
+      window.removeEventListener("portfolio_data_updated", handleUpdate);
     };
   }, []);
 
