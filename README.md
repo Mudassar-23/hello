@@ -2,6 +2,14 @@
 
 Public portfolio site with a JWT-protected admin panel to edit Home, Skills, Projects, Media, Experience, and Contact. Project website screenshots appear in the Media gallery. Contact form messages are stored for the admin inbox.
 
+### Live Demo
+
+
+```
+https://hello-chi-lovat.vercel.app/
+```
+
+---
 ## Stack
 
 - **Frontend:** Vite + React (`frontend/`) — Three.js hero + 3D constellation background
