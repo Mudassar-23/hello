@@ -1,6 +1,8 @@
 import { createContext, useCallback, useContext, useEffect, useState } from "react";
 import {
+  apiFetch,
   getAccessToken,
+  getApiUrl,
   login as apiLogin,
   logout as apiLogout,
   refreshAccessToken,
@@ -17,7 +19,16 @@ export function AuthProvider({ children }) {
     let cancelled = false;
     (async () => {
       const existing = getAccessToken();
-      if (!existing) {
+      if (existing) {
+        if (getApiUrl()) {
+          try {
+            await apiFetch("/api/auth/me");
+          } catch {
+            setAccessToken(null);
+            if (!cancelled) setToken(null);
+          }
+        }
+      } else {
         try {
           await refreshAccessToken();
           if (!cancelled) setToken(getAccessToken());

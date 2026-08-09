@@ -44,17 +44,27 @@ export function mediaUrl(path) {
   return `${API_URL}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
+// Purge any legacy token leftover in localStorage from previous sessions
+try {
+  localStorage.removeItem(ACCESS_KEY);
+} catch {
+  // ignore
+}
+
 export function getAccessToken() {
-  return sessionStorage.getItem(ACCESS_KEY) || localStorage.getItem(ACCESS_KEY);
+  return sessionStorage.getItem(ACCESS_KEY);
 }
 
 export function setAccessToken(token) {
   if (token) {
     sessionStorage.setItem(ACCESS_KEY, token);
-    localStorage.setItem(ACCESS_KEY, token);
   } else {
     sessionStorage.removeItem(ACCESS_KEY);
-    localStorage.removeItem(ACCESS_KEY);
+    try {
+      localStorage.removeItem(ACCESS_KEY);
+    } catch {
+      // ignore
+    }
   }
 }
 
@@ -87,11 +97,21 @@ async function handleLocalApi(path, options = {}) {
 
   // --- Auth endpoints ---
   if (path === "/api/auth/login") {
-    setAccessToken("local_admin_token");
-    return { access_token: "local_admin_token" };
+    const username = bodyData?.username?.trim();
+    const password = bodyData?.password;
+    if (
+      (username === "MudassarChaudhary23" && password === "admin@1234#") ||
+      (username === "admin" && (password === "admin" || password === "admin123" || password === "changeme"))
+    ) {
+      setAccessToken("local_admin_token");
+      return { access_token: "local_admin_token" };
+    }
+    throw new Error("Invalid username or password");
   }
   if (path === "/api/auth/refresh") {
-    return { access_token: "local_admin_token" };
+    const existing = getAccessToken();
+    if (existing) return { access_token: existing };
+    throw new Error("Not authenticated");
   }
   if (path === "/api/auth/logout") {
     setAccessToken(null);
@@ -505,22 +525,22 @@ export async function apiFetch(path, options = {}, _retried = false) {
 }
 
 export async function login(username, password) {
-  try {
+  if (API_URL) {
     const data = await apiFetch("/api/auth/login", {
       method: "POST",
       body: JSON.stringify({ username, password }),
     });
     setAccessToken(data.access_token);
     return data;
-  } catch {
-    // Backend unreachable or returned error — use local fallback
-    const data = await handleLocalApi("/api/auth/login", {
-      method: "POST",
-      body: JSON.stringify({ username, password }),
-    });
-    setAccessToken(data.access_token);
-    return data;
   }
+
+  // Handle local fallback only if API_URL is empty
+  const data = await handleLocalApi("/api/auth/login", {
+    method: "POST",
+    body: JSON.stringify({ username, password }),
+  });
+  setAccessToken(data.access_token);
+  return data;
 }
 
 export async function refreshAccessToken() {
