@@ -5,7 +5,7 @@ export const INITIAL_PORTFOLIO_DATA = {
     headline_line2: "Engineer",
     headline_accent: "",
     subheadline:
-      "I build the layer where hardware meets decision-making — embedded C++ on real sensors, AI and Software Development, and machine learning that ships inside an actual product, not just a notebook.",
+      "I build intelligent systems where **hardware meets decision-making** — combining embedded C++, real-world sensors, AI, and machine learning to turn ideas into software that actually ships inside products.",
     cta_primary: "View projects",
     cta_secondary: "Get in touch",
     meta_repos: "GitHub",
@@ -18,9 +18,9 @@ export const INITIAL_PORTFOLIO_DATA = {
     eyebrow: "About",
     title: "",
     paragraphs: [
-      "I'm a Computer Engineering enthusiast with hands-on experience across AI software development, machine learning, and IoT systems. Most of my work lives at the intersection of the two worlds I like best: code that runs on real hardware, and models that make that hardware smarter.",
-      "My projects range from IoT-based environmental monitoring to machine-learning-powered web apps, usually combining AI with embedded systems to solve a concrete, physical problem rather than a purely digital one.",
-      "Right now I'm going deeper into Edge AI, automation, and intelligent systems — and looking for opportunities to put that knowledge into something people actually use.",
+      "I'm a Computer Engineering enthusiast focused on building intelligent systems that connect software, AI, and real-world hardware. My work spans embedded C/C++, IoT, machine learning, and full-stack application development — with a focus on turning technical ideas into working products.",
+      "I enjoy working where different layers of engineering come together: sensors collecting real-world data, embedded systems processing it, machine-learning models making sense of it, and software turning those insights into useful experiences. My projects include AI-driven predictive maintenance, environmental monitoring, machine-learning applications, and full-stack platforms.",
+      "Currently, I'm focused on Edge AI, intelligent automation, and AI-powered software development — building systems that are not only technically interesting, but practical, reliable, and designed to solve problems people actually face.",
     ],
   },
   contact: {
@@ -28,6 +28,7 @@ export const INITIAL_PORTFOLIO_DATA = {
     email: "infonxhussain@gmail.com",
     github: "https://github.com/Mudassar-23",
     linkedin: "https://www.linkedin.com/in/mudassar-hussain-8952102a0/",
+    phone: "0321-5606827",
     handle: "Mudassar-23",
     linkedin_label: "in/mudassar-hussain-8952102a0",
   },
@@ -267,7 +268,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       company: "Stewart Pakistan Private Limited",
       start_date: "Jul 26",
       end_date: "Present",
-      description: "Building End-to-End AI-Powered Web Applications & Scalable Full-Stack Solutions",
+      description: "Building End-to-End AI-Powered Web Applications & Scalable Full-Stack Solutions.",
       sort_order: 0,
     },
     {
