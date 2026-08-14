@@ -5,7 +5,7 @@ export const INITIAL_PORTFOLIO_DATA = {
     headline_line2: "Engineer",
     headline_accent: "",
     subheadline:
-      "I build intelligent systems where **hardware meets decision-making** — combining embedded C++, real-world sensors, AI, and machine learning to turn ideas into software that actually ships inside products.",
+      "I build intelligent systems where hardware & software meets decision-making — combining embedded C++, real-world sensors, AI, and machine learning to turn ideas into software that actually ships inside products.",
     cta_primary: "View projects",
     cta_secondary: "Get in touch",
     meta_repos: "GitHub",
