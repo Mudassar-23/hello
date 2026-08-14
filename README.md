@@ -43,49 +43,6 @@ npm run dev -- --host 127.0.0.1 --port 5173
 ```
 
 Site: http://127.0.0.1:5173  
-Admin: http://127.0.0.1:5173/admin  
-
-Use the **same host** (`127.0.0.1` or `localhost`) for the site and `VITE_API_URL` / CORS to avoid auth cookie issues.
-
-### Environment
-
-**`backend/.env`**
-
-```
-ADMIN_USERNAME=your_admin
-ADMIN_PASSWORD=your_strong_password
-JWT_SECRET=long-random-secret
-JWT_ALGORITHM=HS256
-ACCESS_TOKEN_EXPIRE_MINUTES=15
-REFRESH_TOKEN_EXPIRE_DAYS=7
-CORS_ORIGINS=http://localhost:5173,http://127.0.0.1:5173
-DATABASE_URL=sqlite:///./portfolio.db
-ENVIRONMENT=development
-```
-
-If the password contains `#`, wrap it in quotes: `ADMIN_PASSWORD="admin@1234#"`.
-
-On first boot the admin user is created from `ADMIN_USERNAME` / `ADMIN_PASSWORD` (stored as bcrypt hash). Changing those env values later does **not** update an existing user — delete `portfolio.db` (dev only) or update the row to re-seed.
-
-**`frontend/.env`**
-
-```
-VITE_API_URL=http://127.0.0.1:8000
-```
-
-## Admin features
-
-- Sign in at `/admin/login` (Admin FAB on the site)
-- **Home** — hero, about text, contact links
-- **Skills** — add / delete skill chips
-- **Projects** — CRUD (name, GitHub link, description, tags)
-- **Media** — each project screenshot upload adds a gallery item (does not overwrite previous)
-- **Experience** — timeline CRUD
-- **Messages** — inbox from the public contact form
-
-## Public site sections
-
-`Home | About | Skills | Projects | Media | Experience | Contact`
 
 ## Security notes
 
@@ -105,16 +62,4 @@ VITE_API_URL=http://127.0.0.1:8000
 
 Point production `CORS_ORIGINS` at your frontend origin and set `ENVIRONMENT=production` (enables Secure cookies + HSTS).
 
-## Project layout
 
-```
-Portfolio/
-├── frontend/          # Vite React app
-├── backend/           # FastAPI API + SQLite
-├── portfolio.jsx      # Original single-file artifact (reference)
-└── README.md
-```
-
-## Original artifact
-
-The standalone [`portfolio.jsx`](portfolio.jsx) file remains for reference; the live app lives under `frontend/`.
