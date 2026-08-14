@@ -64,7 +64,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       github_url: "https://github.com/Mudassar-23/Final-Year-Project-FYP-",
       live_url: "",
       description:
-        "Lumenera is an AI-driven predictive maintenance system for smarter industrial operations. The system analyzes sensor data to predict equipment failures before they happen, reducing downtime and maintenance costs. It uses real-time monitoring and machine learning to identify anomalies and provide early warnings.",
+        "Lumenera is a system that combines IoT, machine learning, and a digital twin to monitor industrial equipment in real time. Sensors connected to an ESP32 collect machine data such as vibration, temperature, humidity, and sound. The dashboard displays live sensor readings, an overall machine health score, and a 3D digital twin of the machine for intuitive monitoring. The AI model analyzes the sensor data to estimate the machine's condition and help identify potential maintenance needs before failures occur.",
       tag: "IoT · AI · ML",
       lang: "C++, Python, ML, IoT",
       stars: 0,
@@ -267,7 +267,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       company: "Stewart Pakistan Private Limited",
       start_date: "Jul 26",
       end_date: "Present",
-      description: "",
+      description: "Building End-to-End AI-Powered Web Applications & Scalable Full-Stack Solutions",
       sort_order: 0,
     },
     {
@@ -277,7 +277,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       start_date: "2023",
       end_date: "Present",
       description:
-        "Building projects across embedded systems, and machine learning — from breadboard prototypes to shipped web apps.",
+        "Building projects across embedded systems, software development, and machine learning — from breadboard prototypes to shipped web apps.",
       sort_order: 1,
     },
   ],
@@ -348,7 +348,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       description:
         "We are proud to share that our team secured 1st Position in the Engineering & AI Category and 2nd Position overall (aggregate) at the Idea Pitching Competition JF'26, organized by the Career Counseling Society. The event provided a great platform to present innovative ideas and showcase our problem-solving skills. This achievement reflects our teamwork, dedication, and passion for innovation.",
       url: "",
-      associated_with: "National University of Computer and Emerging Sciences",
+      associated_with: "FAST-NU",
       image_url: "/uploads/026598a94c7441debba58175ab9bfc02.jpg",
       sort_order: 0,
     },
@@ -359,7 +359,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       issue_date: "Jan 2026",
       description: "Spring24, Fall24, Spring25, Fall25, Spring26",
       url: "https://www.nu.edu.pk/Campus/Lahore/DeanLists",
-      associated_with: "National University of Computer and Emerging Sciences",
+      associated_with: "",
       image_url: "",
       sort_order: 1,
     },
