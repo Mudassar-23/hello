@@ -32,6 +32,7 @@ DEFAULT_CONTACT = {
     "email": "infonxhussain@gmail.com",
     "github": "https://github.com/Mudassar-23",
     "linkedin": "https://www.linkedin.com/in/mudassar-hussain-8952102a0/",
+    "phone": "0321-5606827",
     "handle": "Mudassar-23",
     "linkedin_label": "in/mudassar-hussain-8952102a0",
 }

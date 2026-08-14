@@ -406,6 +406,7 @@ export default function AdminDashboard() {
                 {[
                   ["title", "Contact title"],
                   ["email", "Email"],
+                  ["phone", "Phone number"],
                   ["github", "GitHub URL"],
                   ["linkedin", "LinkedIn URL"],
                   ["handle", "GitHub handle"],

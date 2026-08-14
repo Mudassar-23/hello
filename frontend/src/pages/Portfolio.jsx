@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import {
   Mail,
+  Phone,
   ArrowUpRight,
   Menu,
   X,
@@ -493,6 +494,11 @@ export default function Portfolio() {
               <a href={`mailto:${contact.email}`}>
                 <Mail size={16} /> {contact.email}
               </a>
+              {contact.phone && (
+                <a href={`tel:${contact.phone}`}>
+                  <Phone size={16} /> {contact.phone}
+                </a>
+              )}
               <a href={contact.linkedin} target="_blank" rel="noreferrer">
                 <LinkedInIcon size={16} /> {contact.linkedin_label || "LinkedIn"}
               </a>
