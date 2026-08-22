@@ -62,7 +62,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       id: 8,
       ref: "Ongoing",
       name: "Lumenera: AI-Driven Predictive Maintenance System for Smarter Operations",
-      github_url: "https://github.com/Mudassar-23/Final-Year-Project-FYP-",
+      github_url: "https://github.com/Mudassar-23/Final-Year-Project-FYP.git",
       live_url: "",
       description:
         "Lumenera is a system that combines IoT, machine learning, and a digital twin to monitor industrial equipment in real time. Sensors connected to an ESP32 collect machine data such as vibration, temperature, humidity, and sound. The dashboard displays live sensor readings, an overall machine health score, and a 3D digital twin of the machine for intuitive monitoring. The AI model analyzes the sensor data to estimate the machine's condition and help identify potential maintenance needs before failures occur.",
