@@ -67,7 +67,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       description:
         "Lumenera is a system that combines IoT, machine learning, and a digital twin to monitor industrial equipment in real time. Sensors connected to an ESP32 collect machine data such as vibration, temperature, humidity, and sound. The dashboard displays live sensor readings, an overall machine health score, and a 3D digital twin of the machine for intuitive monitoring. The AI model analyzes the sensor data to estimate the machine's condition and help identify potential maintenance needs before failures occur.",
       tag: "IoT · AI · ML",
-      lang: "C++, Python, ML, IoT",
+      lang: "HTML5, JS, Vanilla CSS3, Three.js, Firebase Auth, C++, Python, ML, IoT",
       stars: 0,
       image_url: "/uploads/47a0abdc4b6b4358b2f8c8e3e2d164b7.png",
       caption: "Lumenera: AI-Driven Predictive Maintenance System",
