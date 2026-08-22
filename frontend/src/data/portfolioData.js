@@ -50,7 +50,7 @@ export const INITIAL_PORTFOLIO_DATA = {
     { id: 15, name: "Ubuntu", sort_order: 14 },
     { id: 16, name: "Jupyter Notebook", sort_order: 15 },
     { id: 17, name: "React Framework", sort_order: 16 },
-    { id: 18, name: "PostgresSQL", sort_order: 17 },
+    { id: 18, name: "PostgreSQL", sort_order: 17 },
     { id: 19, name: "SQLite", sort_order: 18 },
     { id: 20, name: "Git and Github", sort_order: 19 },
     { id: 21, name: "Agentic Engineering", sort_order: 20 },
@@ -89,6 +89,21 @@ export const INITIAL_PORTFOLIO_DATA = {
       sort_order: 1,
     },
     {
+      id: 9,
+      ref: "P9",
+      name: "ToolMind AI",
+      github_url: "https://github.com/Mudassar-23/ToolMind-AI",
+      live_url: "",
+      description:
+        "ToolMind AI is an AI tool recommendation platform that helps users find the right AI tools for different tasks. It has six main categories: Coding, Content & Writing, Academic Research, Agentic AI, Private Coding, and Mathematics. Each category gives an example of what users can ask, such as finding the best AI coding tool, writing tool, research tool, or math-solving tool. Overall, the website is designed to make it easy for users to discover and choose useful AI tools.",
+      tag: "AI · WEB",
+      lang: "React, FASTAPI, SQLite, PostgreSQL",
+      stars: 0,
+      image_url: "/uploads/c8775591dfb2474da2caa9122b28ff7e.png",
+      caption: "ToolMind AI",
+      sort_order: 2,
+    },
+    {
       id: 4,
       ref: "P4",
       name: "Cafe Automate",
@@ -101,7 +116,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       stars: 0,
       image_url: "/uploads/f58f50dd90294fd889ea2a9ea6da1529.png",
       caption: "Cafe Automate",
-      sort_order: 2,
+      sort_order: 3,
     },
     {
       id: 3,
@@ -116,7 +131,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       stars: 0,
       image_url: "/uploads/cbf01f3acc0c459980d12a3c60601999.png",
       caption: "AI Doc Generation",
-      sort_order: 3,
+      sort_order: 4,
     },
     {
       id: 1,
@@ -131,7 +146,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       stars: 1,
       image_url: "/uploads/b49a087ba26b466fb0763b7b758da553.png",
       caption: "House Price Prediction App",
-      sort_order: 4,
+      sort_order: 5,
     },
     {
       id: 5,
@@ -146,7 +161,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       stars: 0,
       image_url: "/uploads/a8cfa4bd727e41b5a996e244347d7afa.jpg",
       caption: "Environmental Monitoring System",
-      sort_order: 5,
+      sort_order: 6,
     },
     {
       id: 6,
@@ -161,7 +176,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       stars: 0,
       image_url: "/uploads/bdbe3137075549768e77fc8b7051933e.jpg",
       caption: "RFID Attendance System using PIC microcontroller",
-      sort_order: 6,
+      sort_order: 7,
     },
     {
       id: 7,
@@ -176,7 +191,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       stars: 0,
       image_url: "/uploads/1587bbad70b943d59e696d37616075e0.png",
       caption: "Controlling LEDs with just your hand gestures",
-      sort_order: 7,
+      sort_order: 8,
     },
   ],
   media: [
@@ -201,6 +216,16 @@ export const INITIAL_PORTFOLIO_DATA = {
       sort_order: 1,
     },
     {
+      id: 9,
+      name: "ToolMind AI",
+      caption: "ToolMind AI",
+      image_url: "/uploads/c8775591dfb2474da2caa9122b28ff7e.png",
+      video_url: "/videos/7a4a70081ae3467a851ec29d6a6e1ffe.mp4",
+      project_id: 9,
+      url: "https://github.com/Mudassar-23/ToolMind-AI",
+      sort_order: 2,
+    },
+    {
       id: 4,
       name: "Cafe Automate",
       caption: "Cafe Automate",
@@ -208,7 +233,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       video_url: "/videos/ea6bf038aa204afca691a4688c1880e8.mp4",
       project_id: 4,
       url: "https://github.com/Mudassar-23/Cafe-Automate",
-      sort_order: 2,
+      sort_order: 3,
     },
     {
       id: 3,
@@ -218,7 +243,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       video_url: "/videos/40c082e7d4da48e0bef91b1fd7b767c0.mp4",
       project_id: 3,
       url: "https://github.com/Mudassar-23/AI-Doc-Generation",
-      sort_order: 3,
+      sort_order: 4,
     },
     {
       id: 1,
@@ -228,7 +253,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       video_url: "/videos/d301af7e4fc242ed9701f5cf70847af4.mp4",
       project_id: 1,
       url: "https://github.com/Mudassar-23/House-Price-Prediction-App",
-      sort_order: 4,
+      sort_order: 5,
     },
     {
       id: 5,
@@ -238,7 +263,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       video_url: "",
       project_id: 5,
       url: "https://github.com/Mudassar-23/IoT-Projects/tree/main",
-      sort_order: 5,
+      sort_order: 6,
     },
     {
       id: 6,
@@ -248,7 +273,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       video_url: "/videos/0c17dfdf98d440b09e6d23be993866cc.mp4",
       project_id: 6,
       url: "https://github.com/Mudassar-23/IoT-Projects/tree/main",
-      sort_order: 6,
+      sort_order: 7,
     },
     {
       id: 7,
@@ -258,7 +283,7 @@ export const INITIAL_PORTFOLIO_DATA = {
       video_url: "/videos/64372e44a93746689c8bf02b3397e62e.mp4",
       project_id: 7,
       url: "https://github.com/Mudassar-23/IoT-Projects/tree/main",
-      sort_order: 7,
+      sort_order: 8,
     },
   ],
   experience: [
