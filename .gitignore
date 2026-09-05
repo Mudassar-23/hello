@@ -36,3 +36,12 @@ build/
 *.db
 *.sqlite
 *.sqlite3
+
+# Video files
+frontend/public/videos/cafe.mp4
+frontend/public/videos/Resume.mp4
+frontend/public/videos/resume.mp4
+frontend/public/videos/plugin.mp4
+frontend/public/videos/docnew.mp4
+frontend/public/videos/doc.mp4
+frontend/public/videos/PLUGIN*.mp4

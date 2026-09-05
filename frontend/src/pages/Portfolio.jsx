@@ -53,6 +53,7 @@ export default function Portfolio() {
   const [menuOpen, setMenuOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState(null);
   const [selectedVideo, setSelectedVideo] = useState(null);
+  const [profilePicOpen, setProfilePicOpen] = useState(false);
   const [glowKey, setGlowKey] = useState(0);
   const [heroRef] = useReveal(0.05);
 
@@ -171,15 +172,17 @@ export default function Portfolio() {
           ))}
         </div>
         <div className="nav-cta">
-          <a
-            className="icon-link"
-            href={contact.github}
-            target="_blank"
-            rel="noreferrer"
-            aria-label="GitHub"
+          <button
+            className="nav-avatar-btn"
+            onClick={() => setProfilePicOpen(true)}
+            aria-label="View profile picture"
           >
-            <GitHubIcon size={16} />
-          </a>
+            <img
+              src="/uploads/mypic.jpg"
+              alt="Profile"
+              className="nav-avatar-img"
+            />
+          </button>
           <button
             className="menu-btn"
             onClick={() => setMenuOpen(true)}
@@ -619,6 +622,38 @@ export default function Portfolio() {
       )}
       {selectedVideo && (
         <VideoModal item={selectedVideo} onClose={() => setSelectedVideo(null)} />
+      )}
+
+      {profilePicOpen && (
+        <div
+          className="profile-lightbox-overlay"
+          onClick={() => setProfilePicOpen(false)}
+          role="dialog"
+          aria-modal="true"
+          aria-label="Profile picture"
+        >
+          <div
+            className="profile-lightbox-content glow-border"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              className="profile-lightbox-close"
+              onClick={() => setProfilePicOpen(false)}
+              aria-label="Close"
+            >
+              <X size={20} />
+            </button>
+            <img
+              src="/uploads/mypic.jpg"
+              alt={home.name || "Mudassar Hussain"}
+              className="profile-lightbox-img"
+            />
+            <div className="profile-lightbox-caption">
+              <h3>{home.name || "Mudassar Hussain"}</h3>
+              <p>{home.role || "AI & Software Engineer | Full-Stack Development"}</p>
+            </div>
+          </div>
+        </div>
       )}
 
       <button

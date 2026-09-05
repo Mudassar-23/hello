@@ -22,3 +22,12 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Video files
+public/videos/cafe.mp4
+public/videos/Resume.mp4
+public/videos/resume.mp4
+public/videos/plugin.mp4
+public/videos/docnew.mp4
+public/videos/doc.mp4
+public/videos/PLUGIN*.mp4
